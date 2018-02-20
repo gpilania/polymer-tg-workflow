@@ -42,7 +42,7 @@ class TgWorkflow(object):
     
     def grow_polymer(self):
         polymer = random_walk(self.monomer, self.chain_length, 
-            forcefield=self.ff, density=self.grow_polymer, 
+            forcefield=self.ff, density=self.growth_density, 
             settings={'np': self.nproc})
         
     def cap_polymer(self):
