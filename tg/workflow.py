@@ -43,7 +43,6 @@ class TgWorkflow(object):
         if self.cool_temp_range is None:
             self.cool_temp_range = reversed(range(100, 601, 10))
         self.nproc = nproc
-        self.overwrite = overwrite
     
     def prepare_monomer(self):
         # preparation for monomer before simulation
