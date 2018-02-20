@@ -1,4 +1,5 @@
 import os
+import shutil
 from random import randint
 from pysimm import system, lmps, forcefield
 from pysimm.apps.random_walk import random_walk, copolymer
@@ -8,7 +9,7 @@ class TgWorkflow(object):
     def __init__(self, monomer, chain_length, ff, growth_density=0.3, 
             equil_temp=600, cool_step_time=100000,
             cool_output=None, random_walk_sim=None, workdir=None, 
-            equil_output=None, nproc=1, cool_temp_range=None):
+            equil_output=None, nproc=1, cool_temp_range=None, overwrite=False):
         self.monomer = monomer
         self.polymer = None
         self.chain_length = chain_length
@@ -33,6 +34,7 @@ class TgWorkflow(object):
         if self.cool_temp_range is None:
             self.cool_temp_range = reversed(range(100, 601, 10))
         self.nproc = nproc
+        self.overwrite = overwrite
     
     def prepare_monomer(self):
         # preparation for monomer before simulation
@@ -69,6 +71,8 @@ class TgWorkflow(object):
         sim.run(np=nproc)
         
     def run(self):
+        if not os.path.exists(self.workdir):
+            os.mkdir(self.workdir)
         os.chdir(self.workdir)
         self.prepare_monomer()
         self.grow_polymer()
