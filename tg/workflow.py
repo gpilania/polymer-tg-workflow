@@ -9,6 +9,7 @@ class TgWorkflow(object):
     def __init__(self, monomer, chain_length, ff, growth_density=0.3, 
             equil_temp=600, cool_step_time=100000,
             cool_output=None, random_walk_sim=None, workdir=None, 
+            equil_step_length=100000, equil_npt_length=1000000,
             equil_output=None, nproc=1, cool_temp_range=None, overwrite=False):
         self.monomer = monomer
         self.polymer = None
@@ -16,6 +17,8 @@ class TgWorkflow(object):
         self.ff = ff
         self.growth_density = growth_density
         self.equil_temp = equil_temp
+        self.equil_step_length = equil_step_length
+        self.equil_npt_length = equil_npt_length
         self.cool_step_time = cool_step_time
         self.workdir = workdir
         if self.workdir is None:
@@ -28,7 +31,13 @@ class TgWorkflow(object):
         self.cool_output = cool_output
         if self.cool_output is None:
             self.cool_output = lmps.OutputSettings(
-                dump={'freq': 10000, 'filename': 'dump.cool.*'}, 
+                dump={
+                    'freq': 10000, 'filename': 'dump.cool.*',
+                    'args': [
+                        'id', 'type', 'mol', 'x', 'y', 'z', 
+                        'vx', 'vy', 'vz', 'c_voronoi[1]'
+                    ]
+                }, 
                 thermo={'freq': 1000})
         self.cool_temp_range = cool_temp_range
         if self.cool_temp_range is None:
@@ -53,17 +62,19 @@ class TgWorkflow(object):
     def equilibrate(self):
         lmps.quick_min(self.polymer)
         equil(self.polymer, tfinal=self.equil_temp, np=self.nproc,
-            output_settings=self.equil_output, log='log.equil')
+            output_settings=self.equil_output, log='log.equil',
+            length_list=[self.equil_step_length for _ in range(7)])
         
     def equilibrate_npt(self):
         sim = lmps.Simulation(self.polymer)
         sim.add(lmps.OutputSettings(dump={'freq': 10000, 'filename': 'dump.equil.npt.*'}, thermo={'freq': 1000}))
-        sim.add_md(ensemble='npt', temperature=self.equil_temp, length=1000000)
+        sim.add_md(ensemble='npt', temperature=self.equil_temp, length=self.equil_npt_length)
         sim.run(np=self.nproc)
         
     def stepwise_cooling(self):
         sim = lmps.Simulation(self.polymer, name='cool', log='log.cool')
         sim.add(self.cool_output)
+        sim.add('compute voronoi all voronoi/atom')
         for temp in self.cool_temp_range:
             velocity = lmps.Velocity(style='scale', temperature=temp)
             md = lmps.MolecularDynamics(ensemble='npt', temperature=temp, pressure=1., run=self.cool_step_time, timestep=1)
