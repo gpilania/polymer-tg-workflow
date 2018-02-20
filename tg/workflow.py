@@ -6,7 +6,7 @@ from pysimm.apps.equilibrate import equil
 
 class TgWorkflow(object):
     def __init__(self, monomer, chain_length, ff, growth_density=0.3, 
-            equil_temp=600, cool_step_time=100000
+            equil_temp=600, cool_step_time=100000,
             cool_output=None, random_walk_sim=None, workdir=None, 
             equil_output=None, nproc=1, cool_temp_range=None):
         self.monomer = monomer
