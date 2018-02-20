@@ -68,7 +68,7 @@ class TgWorkflow(object):
             sim.add(md)
         sim.run(np=nproc)
         
-    def run():
+    def run(self):
         os.chdir(self.workdir)
         self.prepare_monomer()
         self.grow_polymer()
