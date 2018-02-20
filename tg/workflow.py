@@ -32,7 +32,7 @@ class TgWorkflow(object):
         self.cool_temp_range = cool_temp_range
         if self.cool_temp_range is None:
             self.cool_temp_range = reversed(range(100, 601, 10))
-        self.nproc = self.nproc
+        self.nproc = nproc
     
     def prepare_monomer(self):
         # preparation for monomer before simulation
@@ -49,7 +49,7 @@ class TgWorkflow(object):
         
     def equilibrate(self):
         lmps.quick_min(self.polymer)
-        self.polymer = equil(polymer, tfinal=self.equil_temp, np=self.nproc,
+        equil(self.polymer, tfinal=self.equil_temp, np=self.nproc,
             output_settings=self.equil_output, log='log.equil')
         
     def equilibrate_npt(self):
