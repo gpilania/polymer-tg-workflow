@@ -44,8 +44,9 @@ class TgWorkflow(object):
         polymer = random_walk(self.monomer, self.chain_length, 
             forcefield=self.ff, density=self.growth_density, 
             settings={'np': self.nproc})
+        polymer.forcefield = self.ff.name
         
-    def cap_polymer(self):
+    def growth_cleanup(self):
         # cap polymer chain ends
         pass
         
@@ -76,7 +77,7 @@ class TgWorkflow(object):
         os.chdir(self.workdir)
         self.prepare_monomer()
         self.grow_polymer()
-        self.cap_polymer()
+        self.growth_cleanup()
         self.equilibrate()
         self.equilibrate_npt()
         self.stepwise_cooling()
