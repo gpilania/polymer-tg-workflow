@@ -10,7 +10,7 @@ class TgWorkflow(object):
             equil_temp=600, cool_step_time=100000,
             cool_output=None, random_walk_sim=None, workdir=None, 
             equil_step_length=100000, equil_npt_length=1000000,
-            equil_output=None, nproc=1, cool_temp_range=None, overwrite=False):
+            equil_output=None, nproc=1, cool_temp_range=None):
         self.monomer = monomer
         self.polymer = None
         self.chain_length = chain_length
@@ -80,7 +80,7 @@ class TgWorkflow(object):
             md = lmps.MolecularDynamics(ensemble='npt', temperature=temp, pressure=1., run=self.cool_step_time, timestep=1)
             sim.add(velocity)
             sim.add(md)
-        sim.run(np=nproc)
+        sim.run(np=self.nproc)
         
     def run(self):
         if not os.path.exists(self.workdir):
