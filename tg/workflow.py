@@ -72,8 +72,8 @@ class TgWorkflow(object):
         
     def stepwise_cooling(self):
         sim = lmps.Simulation(self.polymer, name='cool', log='log.cool')
-        sim.add(self.cool_output)
         sim.add('compute voronoi all voronoi/atom')
+        sim.add(self.cool_output)
         for temp in self.cool_temp_range:
             velocity = lmps.Velocity(style='scale', temperature=temp)
             md = lmps.MolecularDynamics(ensemble='npt', temperature=temp, pressure=1., run=self.cool_step_time, timestep=1)
