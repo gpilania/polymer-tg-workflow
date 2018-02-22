@@ -10,7 +10,7 @@ class TgWorkflow(object):
             equil_temp=600, cool_step_time=100000,
             cool_output=None, random_walk_sim=None, workdir=None, 
             equil_step_length=100000, equil_npt_length=1000000,
-            equil_output=None, nproc=1, cool_temp_range=None):
+            equil_output=None, nproc=1, cool_temp_range=None, calc_voronoi=True):
         self.monomer = monomer
         self.polymer = None
         self.chain_length = chain_length
@@ -30,19 +30,23 @@ class TgWorkflow(object):
                 thermo={'freq': 1000})
         self.cool_output = cool_output
         if self.cool_output is None:
+            args = [
+                'id', 'type', 'mol', 'x', 'y', 'z', 
+                'vx', 'vy', 'vz'
+            ]
+            if self.calc_voronoi:
+                args += ['c_voronoi[1]']
             self.cool_output = lmps.OutputSettings(
                 dump={
                     'freq': 10000, 'filename': 'dump.cool.*',
-                    'args': [
-                        'id', 'type', 'mol', 'x', 'y', 'z', 
-                        'vx', 'vy', 'vz', 'c_voronoi[1]'
-                    ]
+                    'args': args
                 }, 
                 thermo={'freq': 1000})
         self.cool_temp_range = cool_temp_range
         if self.cool_temp_range is None:
             self.cool_temp_range = reversed(range(100, 601, 10))
         self.nproc = nproc
+        self.calc_voronoi = calc_voronoi
     
     def prepare_monomer(self):
         # preparation for monomer before simulation
@@ -72,7 +76,8 @@ class TgWorkflow(object):
         
     def stepwise_cooling(self):
         sim = lmps.Simulation(self.polymer, name='cool', log='log.cool')
-        sim.add('compute voronoi all voronoi/atom')
+        if self.calc_voronoi:
+            sim.add('compute voronoi all voronoi/atom')
         sim.add(self.cool_output)
         for temp in self.cool_temp_range:
             velocity = lmps.Velocity(style='scale', temperature=temp)
