@@ -36,11 +36,13 @@ class Tg(object):
         self.split = split
         self.split_1d_tol = split_1d_tol
         self.split_1d_max_attempts = split_1d_max_attempts
-        self.split_2d_range = self.temperature_range[10:-10]
+        self.split_2d_range = split_2d_range
+        if self.split_2d_range is None:
+            self.split_2d_range = self.temperature_range[10:-10]
         self.y = []
         for fname in self.logfiles:
             log = lmps.LogFile(fname)
-            self.y.append(1/log.data.Density.values.reshape(51, -1).mean(axis=1))
+            self.y.append(1/log.data.Density.values.reshape(len(self.temperature_range), -1).mean(axis=1))
         if self.y:
             self.yerr = np.array(self.y).std(axis=0)
             self.y = np.array(self.y).mean(axis=0)
@@ -60,11 +62,12 @@ class Tg(object):
         
     def find_split_1d(self):
         split_guess = np.median(self.x)
-        f = BilinearTgFit(self.x, self.y, split_guess)
         for att in range(self.split_1d_max_attempts):
+            f = BilinearTgFit(self.x, self.y, split_guess)
             if np.abs(f.tg-split_guess) <= self.split_1d_tol:
+                print(np.abs(f.tg-split_guess))
                 self.split = split_guess
-                break
+                return
             else:
                 split_guess = f.tg
         if np.abs(f.tg-split_guess) > self.split_1d_tol:
